@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navigation from './components/Navigation';
 import BlogList from './components/BlogList';
@@ -56,7 +56,9 @@ function AppContent() {
               </ProtectedRoute>
             } />
             <Route path="/search" element={<SearchResults />} />
-            <Route path="/admin-login" element={<Login />} />
+            <Route path="/admin-login" element={
+              user ? <Navigate to="/" replace /> : <Login />
+            } />
             <Route path="/about" element={<About />} />
             <Route path="/connect" element={<ConnectWithMe />} />
             <Route path="*" element={<Navigate to="/" replace />} />
