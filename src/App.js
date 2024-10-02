@@ -56,9 +56,7 @@ function AppContent() {
               </ProtectedRoute>
             } />
             <Route path="/search" element={<SearchResults />} />
-            <Route path="/admin-login" element={
-              user ? <Navigate to="/" replace /> : <Login />
-            } />
+            <Route path="/admin-login" element={<Login />} />
             <Route path="/about" element={<About />} />
             <Route path="/connect" element={<ConnectWithMe />} />
             <Route path="*" element={<Navigate to="/" replace />} />
