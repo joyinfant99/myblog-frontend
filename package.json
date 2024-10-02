@@ -14,7 +14,15 @@
     "react-quill": "^2.0.0",
     "react-router-dom": "^6.26.2",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dompurify": "^3.1.7",
+    "dotenv": "^16.4.5",
+    "express": "^4.17.1",
+    "firebase-admin": "^12.5.0",
+    "jsonwebtoken": "^9.0.2",
+    "styled-components": "^6.1.13"
   },
   "scripts": {
     "start": "react-scripts start",
