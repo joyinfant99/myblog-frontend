@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navigation from './components/Navigation';
 import BlogList from './components/BlogList';
@@ -20,7 +20,10 @@ function AppContent() {
     sortOrder: 'desc',
     searchQuery: ''
   });
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedMode = localStorage.getItem('darkMode');
+    return savedMode ? JSON.parse(savedMode) : false;
+  });
 
   const resetFilters = () => {
     setFilters({
@@ -31,9 +34,16 @@ function AppContent() {
   };
 
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    document.body.classList.toggle('dark-mode');
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    localStorage.setItem('darkMode', JSON.stringify(newMode));
+    document.body.classList.toggle('dark-mode', newMode);
   };
+
+  // Apply dark mode on initial render
+  React.useEffect(() => {
+    document.body.classList.toggle('dark-mode', isDarkMode);
+  }, []);
   
   return (
     <div className={`App ${isDarkMode ? 'dark-mode' : ''}`}>
@@ -45,20 +55,27 @@ function AppContent() {
           <Routes>
             <Route path="/" element={<BlogList filters={filters} setFilters={setFilters} />} />
             <Route path="/post/:id" element={<BlogPost />} />
-            <Route path="/create" element={
-              <ProtectedRoute>
-                <CreatePost />
-              </ProtectedRoute>
-            } />
-            <Route path="/categories" element={
-              <ProtectedRoute adminOnly={true}>
-                <CategoryManagement />
-              </ProtectedRoute>
-            } />
+            <Route 
+              path="/create" 
+              element={
+                <ProtectedRoute>
+                  <CreatePost />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/categories" 
+              element={
+                <ProtectedRoute adminOnly={true}>
+                  <CategoryManagement />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="/search" element={<SearchResults />} />
-            <Route path="/admin-login" element={
-              user ? <Navigate to="/" replace /> : <Login />
-            } />
+            <Route 
+              path="/admin-login" 
+              element={user ? <Navigate to="/" replace /> : <Login />} 
+            />
             <Route path="/about" element={<About />} />
             <Route path="/connect" element={<ConnectWithMe />} />
             <Route path="*" element={<Navigate to="/" replace />} />
@@ -80,11 +97,11 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <AppContent />
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
