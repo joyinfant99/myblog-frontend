@@ -8,7 +8,7 @@ function SearchResults() {
   const [error, setError] = useState('');
   const location = useLocation();
 
-  const REACT_APP_API_URL = 'https://myblog-cold-night-118.fly.dev/';
+  const REACT_APP_API_URL = 'https://myblog-cold-night-118.fly.dev';
 
   useEffect(() => {
     const searchPosts = async () => {

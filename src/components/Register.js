@@ -8,7 +8,7 @@ function Register() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const REACT_APP_API_URL = 'https://myblog-cold-night-118.fly.dev/';
+  const REACT_APP_API_URL = 'https://myblog-cold-night-118.fly.dev';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
