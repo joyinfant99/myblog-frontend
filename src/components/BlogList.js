@@ -14,7 +14,7 @@ const BlogList = ({ filters, setFilters }) => {
   const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const REACT_APP_API_URL = 'https://myblog-r61l.onrender.com';
+  const REACT_APP_API_URL = 'https://myblog-cold-night-118.fly.dev/';
 
 
   const fetchPosts = useCallback(() => {
