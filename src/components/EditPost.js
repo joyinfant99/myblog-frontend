@@ -10,7 +10,9 @@ const EditPost = () => {
   const navigate = useNavigate();
   const { getIdToken } = useAuth();
 
+  //const REACT_APP_API_URL = 'https://myblog-cold-night-118.fly.dev'; // Production URL
   const REACT_APP_API_URL = 'https://myblog-cold-night-118.fly.dev';
+
 
   useEffect(() => {
     const fetchPost = async () => {

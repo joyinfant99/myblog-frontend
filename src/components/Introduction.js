@@ -5,9 +5,10 @@ const Introduction = () => {
   return (
     <section className="introduction bento-box">
       <h1>Hey there! 👋</h1>
-      <p>Welcome to my space on the web! I'm Joy, living in Munich with my wife and lil' one, working as a Solutions Engineer at Personio. When I'm not solving problems at work, you'll catch me making beats 🎶, geeking out on history 📚, or chasing the mountain views 🏔️.</p>
-      <p>Cool fact: I built this whole site from scratch using AI 🤖 Just my passion for tech and experimenting with the future 🔥</p>
-      <p>Feel free to explore! This is where I drop my thoughts, projects, and notes ✌️</p>
+      <p>I’m Joy, I live in Munich with my wonderful wife and our little one. By day, I work as a SaaS Solutions Engineer. 
+          In my free time, I’m usually making music, diving into interesting history books, or wandering the mountains. I find a lot of joy in those moments of creativity and discovery.</p>
+      <p>I’ve always been curious about technology, which led me to build this site (With the help fo AI). It’s a little project that reflects my interests and experiments with new ideas.</p>
+      <p>Feel free to explore my space here, I'm excited to share my thoughts and projects with you!✌️</p>
     </section>
   );
 };

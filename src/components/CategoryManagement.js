@@ -8,7 +8,9 @@ function CategoryManagement() {
   const [error, setError] = useState('');
   const { user } = useAuth();
 
+  //const REACT_APP_API_URL = 'https://myblog-cold-night-118.fly.dev'; // Production URL
   const REACT_APP_API_URL = 'https://myblog-cold-night-118.fly.dev';
+
 
   console.log("CategoryManagement rendered, user:", user); // Debug log
 

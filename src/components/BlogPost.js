@@ -6,7 +6,6 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import './BlogPost.css';
 
-
 const BlogPost = () => {
   const [post, setPost] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -188,7 +187,7 @@ const BlogPost = () => {
               </div>
             )}
           </div>
-          <div className="blog-post-meta">
+          <div className="post-meta">
             {post.Category && (
               <span 
                 className="category-pill"
