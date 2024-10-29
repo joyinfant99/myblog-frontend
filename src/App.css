@@ -702,7 +702,7 @@ input:checked + .toggle-slider:before {
   color: #cbcccb;
 }
 
-//NEW CODE
+/*NEW CODE*/
 
 /* Pagination */
 .pagination {
@@ -1001,7 +1001,7 @@ input:checked + .toggle-slider:before {
   }
 }
 
-//CSS for PopUp Search
+/*CSS for PopUp Search */
 
 /* Search Modal Styles */
 .search-overlay {
@@ -1207,7 +1207,7 @@ input:checked + .toggle-slider:before {
   }
  }
 
- //Header CSS 
+ /*Header CSS */
 
 
 /* Header Styles */
