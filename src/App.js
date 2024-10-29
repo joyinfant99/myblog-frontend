@@ -79,6 +79,7 @@ function AppContent() {
             <Route path="/about" element={<About />} />
             <Route path="/connect" element={<ConnectWithMe />} />
             <Route path="*" element={<Navigate to="/" replace />} />
+            
           </Routes>
         </main>
       </div>
