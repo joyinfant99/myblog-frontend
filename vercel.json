@@ -1,7 +1,21 @@
 {
     "rewrites": [
+      { "source": "/static/(.*)", "destination": "/static/$1" },
+      { "source": "/assets/(.*)", "destination": "/assets/$1" },
+      { "source": "/favicon.ico", "destination": "/favicon.ico" },
+      { "source": "/manifest.json", "destination": "/manifest.json" },
+      { "source": "/post/:id", "destination": "/index.html" },
+      { "source": "/(.*)", "destination": "/index.html" }
+    ],
+    "headers": [
       {
-        "source": "/post/:id", "destination": "/"
+        "source": "/(.*)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "s-maxage=1, stale-while-revalidate"
+          }
+        ]
       }
     ]
   }
