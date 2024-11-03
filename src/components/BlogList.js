@@ -43,7 +43,7 @@ const BlogList = ({ filters, setFilters }) => {
         "🪴 Life Unfolded",
     ];
     
-    const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+    const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'https://myblog-cold-night-118.fly.dev';
     const POSTS_PER_PAGE = 5;
 
     useEffect(() => {
