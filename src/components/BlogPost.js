@@ -377,7 +377,7 @@ const BlogPost = () => {
 
   const videoId = extractYoutubeVideoId(post.youtubeUrl);
 
-  const postUrl = `${SITE_URL}/post/${post.customUrl || post.id}`;
+  const postUrl = `${SITE_URL}/#/post/${post.customUrl || post.id}`;
   const bannerImageUrl = getFullImageUrl(post.bannerImage);
   const socialImageUrl = getFullImageUrl(post.socialImage) || bannerImageUrl;
   const imageUrl = getAbsoluteImageUrl(post.bannerImage);
