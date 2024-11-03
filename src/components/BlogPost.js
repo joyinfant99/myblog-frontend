@@ -54,14 +54,13 @@ const BlogPost = () => {
   const [isVideoExpanded, setIsVideoExpanded] = useState(false);
   const [youtubeEmbedUrl, setYoutubeEmbedUrl] = useState('');
 
-  // Get parameters and location
   const { id, slug } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const { user, getIdToken } = useAuth();
 
   const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'https://myblog-cold-night-118.fly.dev';
-  const SITE_URL = process.env.REACT_APP_SITE_URL || window.location.origin;
+  const SITE_URL = process.env.REACT_APP_SITE_URL || window.location.origin.replace(/\/$/, '');
 
   const modules = {
     toolbar: [
@@ -109,22 +108,17 @@ const BlogPost = () => {
       try {
         let response;
         
-        // Try to fetch by slug first (including direct URLs)
         if (slug) {
           response = await axios.get(`${REACT_APP_API_URL}/posts/url/${slug}`);
-        } 
-        // If no slug or fetch fails, try ID
-        else if (id) {
+        } else if (id) {
           response = await axios.get(`${REACT_APP_API_URL}/posts/id/${id}`);
         } else {
-          // Extract slug from path if neither slug nor id is in params
           const pathSlug = location.pathname.split('/').pop();
           response = await axios.get(`${REACT_APP_API_URL}/posts/url/${pathSlug}`);
         }
 
         const data = response.data;
 
-        // Handle redirects for custom URLs
         if (data.customUrl) {
           const currentPath = location.pathname;
           const expectedPath = `/post/${data.customUrl}`;
@@ -171,6 +165,16 @@ const BlogPost = () => {
     fetchPost();
     fetchCategories();
   }, [id, slug, location.pathname, navigate]);
+
+  const getFullImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    return `${REACT_APP_API_URL}/${path}`;
+  };
+
+  const getCanonicalUrl = () => {
+    return `${SITE_URL}/#/post/${post?.customUrl || post?.id}`;
+  };
 
   const fetchCategories = async () => {
     try {
@@ -356,28 +360,73 @@ const BlogPost = () => {
   if (!post) return <div className="no-post">Post not found.</div>;
 
   const videoId = extractYoutubeVideoId(post.youtubeUrl);
-  const currentUrl = `${SITE_URL}/#/post/${post.customUrl || post.id}`;
+  const canonicalUrl = getCanonicalUrl();
+  const bannerImageUrl = getFullImageUrl(post.bannerImage);
+  const socialImageUrl = getFullImageUrl(post.socialImage) || bannerImageUrl;
   
   return (
     <>
       <Helmet>
-  <title>{post.socialTitle || post.title}</title>
-  <meta name="description" content={post.metaDescription} />
-  <meta property="og:title" content={post.socialTitle || post.title} />
-  <meta property="og:description" content={post.socialDescription || post.metaDescription} />
-  <meta property="og:url" content={currentUrl} />
-  {post.socialImage && (
-    <meta property="og:image" content={`${SITE_URL}/${post.socialImage}`} />
-  )}
-  <meta property="og:type" content="article" />
-  <meta property="twitter:card" content="summary_large_image" />
-  <meta property="twitter:title" content={post.socialTitle || post.title} />
-  <meta property="twitter:description" content={post.socialDescription || post.metaDescription} />
-  {post.socialImage && (
-    <meta property="twitter:image" content={`${SITE_URL}/${post.socialImage}`} />
-  )}
-  <link rel="canonical" href={currentUrl} />
-</Helmet>
+        {/* Basic Meta Tags */}
+        <title>{post.socialTitle || post.title}</title>
+        <meta name="description" content={post.metaDescription} />
+        <link rel="canonical" href={canonicalUrl} />
+
+        {/* OpenGraph / Facebook */}
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:title" content={post.socialTitle || post.title} />
+        <meta property="og:description" content={post.socialDescription || post.metaDescription} />
+        {socialImageUrl && <meta property="og:image" content={socialImageUrl} />}
+        <meta property="og:site_name" content="Joy's Blog" />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:site" content="@joyinfant" />
+        <meta name="twitter:title" content={post.socialTitle || post.title} />
+        <meta name="twitter:description" content={post.socialDescription || post.metaDescription} />
+        {socialImageUrl && <meta name="twitter:image" content={socialImageUrl} />}
+
+        {/* LinkedIn */}
+        <meta property="linkedin:card" content="summary_large_image" />
+        <meta property="linkedin:title" content={post.socialTitle || post.title} />
+        <meta property="linkedin:description" content={post.socialDescription || post.metaDescription} />
+        {socialImageUrl && <meta property="linkedin:image" content={socialImageUrl} />}
+
+        {/* Article Specific */}
+        <meta property="article:published_time" content={post.publishDate} />
+        {post.Category && <meta property="article:section" content={post.Category.name} />}
+        <meta property="article:author" content="Joy Infant" />
+
+        {/* Schema.org BlogPosting */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            "headline": post.title,
+            "description": post.metaDescription,
+            "image": socialImageUrl,
+            "datePublished": post.publishDate,
+            "dateModified": post.updatedAt,
+            "author": {
+              "@type": "Person",
+              "name": "Joy Infant"
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "Joy's Blog",
+              "logo": {
+                "@type": "ImageObject",
+                "url": `${SITE_URL}/logo.png`
+              }
+            },
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": canonicalUrl
+            }
+          })}
+        </script>
+      </Helmet>
 
 
       <div className="blog-post">
