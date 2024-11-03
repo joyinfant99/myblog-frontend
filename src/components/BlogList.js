@@ -1,5 +1,6 @@
+// src/components/BlogList.js
 import React, { useEffect, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import DOMPurify from "dompurify";
 import Introduction from "./Introduction";
 import { Search, ArrowUpDown } from "lucide-react";
@@ -30,6 +31,9 @@ const BlogList = ({ filters, setFilters }) => {
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [sortLabel, setSortLabel] = useState("Latest");
     const [headerIndex, setHeaderIndex] = useState(0);
+    
+    const location = useLocation();
+    const navigate = useNavigate();
 
     const HEADERS = [
         "🚀 Solution Stories",
@@ -39,7 +43,7 @@ const BlogList = ({ filters, setFilters }) => {
         "🪴 Life Unfolded",
     ];
     
-    const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "https://myblog-cold-night-118.fly.dev";
+    const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
     const POSTS_PER_PAGE = 5;
 
     useEffect(() => {
@@ -64,7 +68,7 @@ const BlogList = ({ filters, setFilters }) => {
             setError(err.message);
             setLoading(false);
         }
-    }, [filters]);
+    }, [filters, REACT_APP_API_URL]);
 
     const filterAndPaginatePosts = (allPosts, category, sortOrder, page) => {
         let filtered = [...allPosts];
@@ -90,7 +94,10 @@ const BlogList = ({ filters, setFilters }) => {
         setTotalPages(totalPages);
     };
 
-    // Modified search function to handle custom URLs
+    const getPostUrl = (post) => {
+        return post.customUrl ? `/post/${post.customUrl}` : `/post/id/${post.id}`;
+    };
+
     const searchPosts = (term) => {
         if (!term.trim()) {
             setSearchResults([]);
@@ -116,7 +123,7 @@ const BlogList = ({ filters, setFilters }) => {
             .then((response) => response.json())
             .then((data) => setCategories(data))
             .catch((err) => console.error("Failed to fetch categories:", err));
-    }, []);
+    }, [REACT_APP_API_URL]);
 
     useEffect(() => {
         if (posts.length > 0) {
@@ -173,10 +180,6 @@ const BlogList = ({ filters, setFilters }) => {
         if (strippedString.length <= maxLength) return html;
         const truncated = strippedString.substr(0, maxLength);
         return truncated.substr(0, truncated.lastIndexOf(" ")) + "...";
-    };
-
-    const getPostUrl = (post) => {
-        return `/post/${post.customUrl || post.id}`;
     };
 
     if (loading) return <div className="loading">Loading...</div>;
