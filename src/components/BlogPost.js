@@ -281,7 +281,7 @@ const BlogPost = () => {
   };
 
   const handleShare = (platform) => {
-    const url = encodeURIComponent(`${SITE_URL}/post/${post.customUrl || post.id}`);
+    const url = encodeURIComponent(`${SITE_URL}/#/post/${post.customUrl || post.id}`);
     const text = encodeURIComponent(post.socialTitle || post.title);
     const shareUrl = platform.getUrl(url, text);
     
@@ -290,7 +290,7 @@ const BlogPost = () => {
 
   const handleCopyLink = async () => {
     try {
-      const url = `${SITE_URL}/post/${post.customUrl || post.id}`;
+      const url = `${SITE_URL}/#/post/${post.customUrl || post.id}`;
       await navigator.clipboard.writeText(url);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
@@ -356,7 +356,7 @@ const BlogPost = () => {
   if (!post) return <div className="no-post">Post not found.</div>;
 
   const videoId = extractYoutubeVideoId(post.youtubeUrl);
-  const currentUrl = `${SITE_URL}/post/${post.customUrl || post.id}`;
+  const currentUrl = `${SITE_URL}/#/post/${post.customUrl || post.id}`;
   
   return (
     <>
