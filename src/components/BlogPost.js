@@ -361,16 +361,24 @@ const BlogPost = () => {
   return (
     <>
       <Helmet>
-        <title>{post.socialTitle || post.title}</title>
-        <meta name="description" content={post.metaDescription} />
-        <meta property="og:title" content={post.socialTitle || post.title} />
-        <meta property="og:description" content={post.socialDescription || post.metaDescription} />
-        <meta property="og:url" content={currentUrl} />
-        {post.socialImage && (
-          <meta property="og:image" content={`${SITE_URL}/${post.socialImage}`} />
-        )}
-        <link rel="canonical" href={currentUrl} />
-      </Helmet>
+  <title>{post.socialTitle || post.title}</title>
+  <meta name="description" content={post.metaDescription} />
+  <meta property="og:title" content={post.socialTitle || post.title} />
+  <meta property="og:description" content={post.socialDescription || post.metaDescription} />
+  <meta property="og:url" content={currentUrl} />
+  {post.socialImage && (
+    <meta property="og:image" content={`${SITE_URL}/${post.socialImage}`} />
+  )}
+  <meta property="og:type" content="article" />
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:title" content={post.socialTitle || post.title} />
+  <meta property="twitter:description" content={post.socialDescription || post.metaDescription} />
+  {post.socialImage && (
+    <meta property="twitter:image" content={`${SITE_URL}/${post.socialImage}`} />
+  )}
+  <link rel="canonical" href={currentUrl} />
+</Helmet>
+
 
       <div className="blog-post">
         <Link to="/" className="back-button">
