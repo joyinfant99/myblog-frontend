@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { HelmetProvider } from 'react-helmet-async';
 import Navigation from './components/Navigation';
@@ -12,7 +12,7 @@ import CategoryManagement from './components/CategoryManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 import About from './components/About';
 import ConnectWithMe from './components/ConnectWithMe';
-import DefaultSEO from './components/DefaultSEO';
+import DefaultSEO from './components/DefaultSEO.js';
 import './App.css';
 
 function AppContent() {
