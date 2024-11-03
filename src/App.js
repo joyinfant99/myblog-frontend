@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { HelmetProvider } from 'react-helmet-async';
 import Navigation from './components/Navigation';
@@ -12,7 +12,7 @@ import CategoryManagement from './components/CategoryManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 import About from './components/About';
 import ConnectWithMe from './components/ConnectWithMe';
-import DefaultSEO from './components/DefaultSEO.js';
+import DefaultSEO from './components/DefaultSEO';
 import './App.css';
 
 function AppContent() {
@@ -42,10 +42,9 @@ function AppContent() {
     document.body.classList.toggle('dark-mode', newMode);
   };
 
-  // Apply dark mode on initial render
   React.useEffect(() => {
     document.body.classList.toggle('dark-mode', isDarkMode);
-  }, []);
+  }, [isDarkMode]);
   
   return (
     <div className={`App ${isDarkMode ? 'dark-mode' : ''}`}>
@@ -56,21 +55,14 @@ function AppContent() {
       <div className="content-wrapper">
         <main className="main-content">
           <Routes>
-            {/* Home Route */}
+            {/* Static Routes */}
             <Route 
-              path="/" 
-              element={<BlogList filters={filters} setFilters={setFilters} />} 
+              path="/admin-login" 
+              element={user ? <Navigate to="/" replace /> : <Login />} 
             />
-            
-            {/* Blog Post Routes - Order matters here */}
-            <Route 
-              path="/post/id/:id" 
-              element={<BlogPost />} 
-            />
-            <Route 
-              path="/post/:slug" 
-              element={<BlogPost />} 
-            />
+            <Route path="/about" element={<About />} />
+            <Route path="/connect" element={<ConnectWithMe />} />
+            <Route path="/search" element={<SearchResults />} />
             
             {/* Protected Routes */}
             <Route 
@@ -89,35 +81,27 @@ function AppContent() {
                 </ProtectedRoute>
               } 
             />
+
+            {/* Blog Post Routes - Order matters here */}
+            <Route path="/post/id/:id" element={<BlogPost />} /> {/* Legacy ID-based URLs */}
+            <Route path="/post/:slug" element={<BlogPost />} /> {/* Custom URL with prefix */}
             
-            {/* Public Routes */}
-            <Route 
-              path="/search" 
-              element={<SearchResults />} 
-            />
-            <Route 
-              path="/admin-login" 
-              element={user ? <Navigate to="/" replace /> : <Login />} 
-            />
-            <Route 
-              path="/about" 
-              element={<About />} 
-            />
-            <Route 
-              path="/connect" 
-              element={<ConnectWithMe />} 
-            />
+            {/* Home Route */}
+            <Route path="/" element={<BlogList filters={filters} setFilters={setFilters} />} />
             
-            {/* Direct blog post access - for cleaner URLs */}
-            <Route 
-              path="/:slug" 
-              element={<BlogPost />} 
-            />
-            
+            {/* Direct Custom URL Route - Must be after specific routes */}
+            <Route path="/:slug" element={<BlogPost />} />
+
             {/* Catch-all route - must be last */}
             <Route 
               path="*" 
-              element={<Navigate to="/" replace />} 
+              element={
+                <Navigate 
+                  to="/" 
+                  replace 
+                  state={{ error: 'Page not found' }}
+                />
+              } 
             />
           </Routes>
         </main>
