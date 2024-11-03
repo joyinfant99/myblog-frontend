@@ -1,5 +1,3 @@
-
-// src/components/BlogList.js
 import React, { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import DOMPurify from "dompurify";
@@ -41,16 +39,16 @@ const BlogList = ({ filters, setFilters }) => {
         "🪴 Life Unfolded",
     ];
     
-    const REACT_APP_API_URL = "https://myblog-cold-night-118.fly.dev";
+    const REACT_APP_API_URL = process.env.REACT_APP_API_URL || "https://myblog-cold-night-118.fly.dev";
     const POSTS_PER_PAGE = 5;
 
     useEffect(() => {
-      const interval = setInterval(() => {
-          setHeaderIndex((prev) => (prev + 1) % HEADERS.length);
-      }, 3000);
-  
-      return () => clearInterval(interval);
-  }, [HEADERS.length]); // Add HEADERS.length as a dependency
+        const interval = setInterval(() => {
+            setHeaderIndex((prev) => (prev + 1) % HEADERS.length);
+        }, 3000);
+    
+        return () => clearInterval(interval);
+    }, [HEADERS.length]);
 
     // Fetch Posts
     const fetchPosts = useCallback(async () => {
@@ -92,6 +90,7 @@ const BlogList = ({ filters, setFilters }) => {
         setTotalPages(totalPages);
     };
 
+    // Modified search function to handle custom URLs
     const searchPosts = (term) => {
         if (!term.trim()) {
             setSearchResults([]);
@@ -174,6 +173,10 @@ const BlogList = ({ filters, setFilters }) => {
         if (strippedString.length <= maxLength) return html;
         const truncated = strippedString.substr(0, maxLength);
         return truncated.substr(0, truncated.lastIndexOf(" ")) + "...";
+    };
+
+    const getPostUrl = (post) => {
+        return `/post/${post.customUrl || post.id}`;
     };
 
     if (loading) return <div className="loading">Loading...</div>;
@@ -263,7 +266,7 @@ const BlogList = ({ filters, setFilters }) => {
                                     searchResults.map((post) => (
                                         <Link
                                             key={post.id}
-                                            to={`/post/${post.id}`}
+                                            to={getPostUrl(post)}
                                             className="search-result-item"
                                             onClick={() => setIsSearchActive(false)}
                                         >
@@ -315,7 +318,7 @@ const BlogList = ({ filters, setFilters }) => {
                         filteredPosts.map((post) => (
                             <div key={post.id} className="blog-item">
                                 <h2>
-                                    <Link to={`/post/${post.id}`}>{post.title}</Link>
+                                    <Link to={getPostUrl(post)}>{post.title}</Link>
                                 </h2>
                                 <div className="post-meta">
                                     <span className="post-date">
@@ -346,7 +349,7 @@ const BlogList = ({ filters, setFilters }) => {
                                         ),
                                     }}
                                 />
-                                <Link to={`/post/${post.id}`} className="read-more">
+                                <Link to={getPostUrl(post)} className="read-more">
                                     Read more
                                 </Link>
                             </div>
@@ -354,7 +357,6 @@ const BlogList = ({ filters, setFilters }) => {
                     )}
                 </div>
 
-                {/* Pagination */}
                 {totalPages > 1 && (
                     <div className="pagination">
                         <button

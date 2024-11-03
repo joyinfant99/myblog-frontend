@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { HelmetProvider } from 'react-helmet-async';
 import Navigation from './components/Navigation';
 import BlogList from './components/BlogList';
 import BlogPost from './components/BlogPost';
@@ -11,6 +12,7 @@ import CategoryManagement from './components/CategoryManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 import About from './components/About';
 import ConnectWithMe from './components/ConnectWithMe';
+import DefaultSEO from './components/DefaultSEO';
 import './App.css';
 
 function AppContent() {
@@ -47,14 +49,30 @@ function AppContent() {
   
   return (
     <div className={`App ${isDarkMode ? 'dark-mode' : ''}`}>
+      <DefaultSEO />
       <header className="header">
         <Navigation resetFilters={resetFilters} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
       </header>
       <div className="content-wrapper">
         <main className="main-content">
           <Routes>
-            <Route path="/" element={<BlogList filters={filters} setFilters={setFilters} />} />
-            <Route path="/post/:id" element={<BlogPost />} />
+            {/* Home Route */}
+            <Route 
+              path="/" 
+              element={<BlogList filters={filters} setFilters={setFilters} />} 
+            />
+            
+            {/* Blog Post Routes - Order matters here */}
+            <Route 
+              path="/post/id/:id" 
+              element={<BlogPost />} 
+            />
+            <Route 
+              path="/post/:slug" 
+              element={<BlogPost />} 
+            />
+            
+            {/* Protected Routes */}
             <Route 
               path="/create" 
               element={
@@ -71,15 +89,36 @@ function AppContent() {
                 </ProtectedRoute>
               } 
             />
-            <Route path="/search" element={<SearchResults />} />
+            
+            {/* Public Routes */}
+            <Route 
+              path="/search" 
+              element={<SearchResults />} 
+            />
             <Route 
               path="/admin-login" 
               element={user ? <Navigate to="/" replace /> : <Login />} 
             />
-            <Route path="/about" element={<About />} />
-            <Route path="/connect" element={<ConnectWithMe />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route 
+              path="/about" 
+              element={<About />} 
+            />
+            <Route 
+              path="/connect" 
+              element={<ConnectWithMe />} 
+            />
             
+            {/* Direct blog post access - for cleaner URLs */}
+            <Route 
+              path="/:slug" 
+              element={<BlogPost />} 
+            />
+            
+            {/* Catch-all route - must be last */}
+            <Route 
+              path="*" 
+              element={<Navigate to="/" replace />} 
+            />
           </Routes>
         </main>
       </div>
@@ -98,11 +137,13 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </Router>
+    <HelmetProvider>
+      <Router>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </Router>
+    </HelmetProvider>
   );
 }
 
