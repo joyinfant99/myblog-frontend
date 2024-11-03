@@ -625,7 +625,7 @@ const BlogPost = () => {
                   <div className="url-copy-container">
                     <input 
                       type="text" 
-                      value={currentUrl}
+                      value={getCanonicalUrl}
                       readOnly 
                       className="url-input" 
                     />
