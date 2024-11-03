@@ -118,6 +118,7 @@ const BlogPost = () => {
         }
 
         const data = response.data;
+        document.title = data.title;
 
         if (data.customUrl) {
           const currentPath = location.pathname;
@@ -165,6 +166,21 @@ const BlogPost = () => {
     fetchPost();
     fetchCategories();
   }, [id, slug, location.pathname, navigate]);
+
+  // Function to get absolute URL for images
+  const getAbsoluteImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http')) return imagePath;
+    return `${REACT_APP_API_URL}/${imagePath}`;
+  };
+
+  // Function to get clean meta description
+  const getMetaDescription = (content) => {
+    const strippedContent = content.replace(/<[^>]+>/g, ' ').trim();
+    return strippedContent.length > 160 ? 
+      strippedContent.substring(0, 157) + '...' : 
+      strippedContent;
+  };
 
   const getFullImageUrl = (path) => {
     if (!path) return null;
@@ -360,57 +376,65 @@ const BlogPost = () => {
   if (!post) return <div className="no-post">Post not found.</div>;
 
   const videoId = extractYoutubeVideoId(post.youtubeUrl);
-  const canonicalUrl = getCanonicalUrl();
+
+  const postUrl = `${SITE_URL}/post/${post.customUrl || post.id}`;
   const bannerImageUrl = getFullImageUrl(post.bannerImage);
   const socialImageUrl = getFullImageUrl(post.socialImage) || bannerImageUrl;
+  const imageUrl = getAbsoluteImageUrl(post.bannerImage);
+  const metaDescription = post.metaDescription || getMetaDescription(post.content);
   
   return (
     <>
       <Helmet>
-        {/* Basic Meta Tags */}
-        <title>{post.socialTitle || post.title}</title>
-        <meta name="description" content={post.metaDescription} />
-        <link rel="canonical" href={canonicalUrl} />
+        {/* Essential Meta Tags */}
+        <title>{post.title}</title>
+        <meta name="description" content={metaDescription} />
+        <link rel="canonical" href={postUrl} />
 
-        {/* OpenGraph / Facebook */}
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content={canonicalUrl} />
-        <meta property="og:title" content={post.socialTitle || post.title} />
-        <meta property="og:description" content={post.socialDescription || post.metaDescription} />
-        {socialImageUrl && <meta property="og:image" content={socialImageUrl} />}
+        {/* Facebook */}
         <meta property="og:site_name" content="Joy's Blog" />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={postUrl} />
+        <meta property="og:title" content={post.title} />
+        <meta property="og:description" content={metaDescription} />
+        {imageUrl && <meta property="og:image" content={imageUrl} />}
+        {imageUrl && <meta property="og:image:secure_url" content={imageUrl} />}
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content="@joyinfant" />
-        <meta name="twitter:title" content={post.socialTitle || post.title} />
-        <meta name="twitter:description" content={post.socialDescription || post.metaDescription} />
-        {socialImageUrl && <meta name="twitter:image" content={socialImageUrl} />}
-
-        {/* LinkedIn */}
-        <meta property="linkedin:card" content="summary_large_image" />
-        <meta property="linkedin:title" content={post.socialTitle || post.title} />
-        <meta property="linkedin:description" content={post.socialDescription || post.metaDescription} />
-        {socialImageUrl && <meta property="linkedin:image" content={socialImageUrl} />}
+        <meta name="twitter:title" content={post.title} />
+        <meta name="twitter:description" content={metaDescription} />
+        {imageUrl && <meta name="twitter:image" content={imageUrl} />}
 
         {/* Article Specific */}
         <meta property="article:published_time" content={post.publishDate} />
-        {post.Category && <meta property="article:section" content={post.Category.name} />}
+        <meta property="article:modified_time" content={post.updatedAt} />
         <meta property="article:author" content="Joy Infant" />
+        {post.Category && (
+          <meta property="article:section" content={post.Category.name} />
+        )}
 
         {/* Schema.org BlogPosting */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "BlogPosting",
+            "mainEntityOfPage": {
+              "@type": "WebPage",
+              "@id": postUrl
+            },
             "headline": post.title,
-            "description": post.metaDescription,
-            "image": socialImageUrl,
+            "description": metaDescription,
+            "image": imageUrl,
             "datePublished": post.publishDate,
             "dateModified": post.updatedAt,
             "author": {
               "@type": "Person",
-              "name": "Joy Infant"
+              "name": "Joy Infant",
+              "url": SITE_URL
             },
             "publisher": {
               "@type": "Organization",
@@ -419,10 +443,6 @@ const BlogPost = () => {
                 "@type": "ImageObject",
                 "url": `${SITE_URL}/logo.png`
               }
-            },
-            "mainEntityOfPage": {
-              "@type": "WebPage",
-              "@id": canonicalUrl
             }
           })}
         </script>
@@ -625,7 +645,7 @@ const BlogPost = () => {
                   <div className="url-copy-container">
                     <input 
                       type="text" 
-                      value={getCanonicalUrl}
+                      value={postUrl}
                       readOnly 
                       className="url-input" 
                     />
