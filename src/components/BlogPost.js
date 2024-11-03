@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '../contexts/AuthContext';
 import DOMPurify from 'dompurify';
@@ -25,6 +25,7 @@ import {
   Youtube,
   Linkedin
 } from 'lucide-react';
+import axios from 'axios';
 import 'react-quill/dist/quill.snow.css';
 import './BlogPost.css';
 
@@ -42,7 +43,8 @@ const BlogPost = () => {
     metaDescription: '',
     socialTitle: '',
     socialDescription: '',
-    socialImage: null
+    socialImage: null,
+    seoKeywords: ''
   });
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -50,11 +52,15 @@ const BlogPost = () => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [isVideoExpanded, setIsVideoExpanded] = useState(false);
-  const { id, slug } = useParams();
-  const { user, getIdToken } = useAuth();
-  const navigate = useNavigate();
+  const [youtubeEmbedUrl, setYoutubeEmbedUrl] = useState('');
 
-  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'https://myblog-cold-night-118.fly.dev';
+  // Get parameters and location
+  const { id, slug } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { user, getIdToken } = useAuth();
+
+  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
   const SITE_URL = process.env.REACT_APP_SITE_URL || window.location.origin;
 
   const modules = {
@@ -99,67 +105,77 @@ const BlogPost = () => {
   ];
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const fetchPost = async () => {
+      try {
+        let response;
+        
+        // Try to fetch by slug first (including direct URLs)
+        if (slug) {
+          response = await axios.get(`${REACT_APP_API_URL}/posts/url/${slug}`);
+        } 
+        // If no slug or fetch fails, try ID
+        else if (id) {
+          response = await axios.get(`${REACT_APP_API_URL}/posts/id/${id}`);
+        } else {
+          // Extract slug from path if neither slug nor id is in params
+          const pathSlug = location.pathname.split('/').pop();
+          response = await axios.get(`${REACT_APP_API_URL}/posts/url/${pathSlug}`);
+        }
+
+        const data = response.data;
+
+        // Handle redirects for custom URLs
+        if (data.customUrl) {
+          const currentPath = location.pathname;
+          const expectedPath = `/post/${data.customUrl}`;
+          
+          if (currentPath !== expectedPath && !currentPath.endsWith(data.customUrl)) {
+            navigate(expectedPath, { replace: true });
+            return;
+          }
+        }
+
+        setPost(data);
+        setEditedPost({
+          title: data.title,
+          content: data.content,
+          CategoryId: data.CategoryId,
+          customUrl: data.customUrl || '',
+          publishDate: data.publishDate,
+          youtubeUrl: data.youtubeUrl || '',
+          metaDescription: data.metaDescription || '',
+          socialTitle: data.socialTitle || data.title,
+          socialDescription: data.socialDescription || data.metaDescription,
+          seoKeywords: Array.isArray(data.seoKeywords) ? data.seoKeywords.join(', ') : data.seoKeywords || ''
+        });
+
+        if (data.youtubeUrl) {
+          const videoId = extractYoutubeVideoId(data.youtubeUrl);
+          if (videoId) {
+            setYoutubeEmbedUrl(`https://www.youtube.com/embed/${videoId}`);
+          }
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching post:', error);
+        if (error.response?.status === 404) {
+          navigate('/', { replace: true });
+        } else {
+          setError('Failed to load post. Please try again.');
+        }
+        setLoading(false);
+      }
+    };
+
     fetchPost();
     fetchCategories();
-  }, [slug, id]);
-
-  const fetchPost = async () => {
-    try {
-      let url;
-      // Determine which API endpoint to use based on available parameters
-      if (slug) {
-        url = `${REACT_APP_API_URL}/posts/url/${slug}`;
-      } else if (id) {
-        url = `${REACT_APP_API_URL}/posts/id/${id}`;
-      } else {
-        throw new Error('No identifier provided');
-      }
-
-      const response = await fetch(url);
-      if (!response.ok) {
-        if (response.status === 404) {
-          navigate('/');
-          return;
-        }
-        throw new Error('Failed to fetch post');
-      }
-
-      const data = await response.json();
-      
-      // If found by ID and has customUrl, redirect
-      if (id && data.customUrl && !window.location.pathname.includes(data.customUrl)) {
-        navigate(`/post/${data.customUrl}`, { replace: true });
-        return;
-      }
-
-      setPost(data);
-      setEditedPost({
-        title: data.title,
-        content: data.content,
-        CategoryId: data.CategoryId,
-        customUrl: data.customUrl || '',
-        publishDate: data.publishDate,
-        youtubeUrl: data.youtubeUrl || '',
-        metaDescription: data.metaDescription || '',
-        socialTitle: data.socialTitle || data.title,
-        socialDescription: data.socialDescription || data.metaDescription,
-        socialImage: data.socialImage || data.bannerImage
-      });
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching post:', error);
-      setError(error.message);
-      setLoading(false);
-    }
-  };
+  }, [id, slug, location.pathname, navigate]);
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`${REACT_APP_API_URL}/categories`);
-      if (!response.ok) throw new Error('Failed to fetch categories');
-      const data = await response.json();
-      setCategories(data);
+      const response = await axios.get(`${REACT_APP_API_URL}/categories`);
+      setCategories(response.data);
     } catch (error) {
       console.error('Error fetching categories:', error);
       setError('Failed to load categories. Please try again.');
@@ -167,23 +183,19 @@ const BlogPost = () => {
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this post?')) {
-      try {
-        const token = await getIdToken();
-        const response = await fetch(`${REACT_APP_API_URL}/posts/${post.id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        if (!response.ok) {
-          throw new Error('Failed to delete post');
-        }
-        navigate('/');
-      } catch (error) {
-        console.error('Error deleting post:', error);
-        setError(error.message);
-      }
+    if (!window.confirm('Are you sure you want to delete this post?')) {
+      return;
+    }
+
+    try {
+      const token = await getIdToken();
+      await axios.delete(`${REACT_APP_API_URL}/posts/${post.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      setError('Failed to delete post. Please try again.');
     }
   };
 
@@ -192,69 +204,71 @@ const BlogPost = () => {
   };
 
   const handleChange = (e) => {
-    const value = e.target.type === 'file' 
-      ? e.target.files[0]
-      : e.target.value;
-    setEditedPost({ ...editedPost, [e.target.name]: value });
+    const { name, value, type, files } = e.target;
+    if (type === 'file') {
+      handleFileChange(name, files[0]);
+    } else {
+      setEditedPost(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleFileChange = (fieldName, file) => {
+    if (!file) return;
+
+    if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
+      setError('Please upload only JPEG or PNG images.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size should be less than 5MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setEditedPost(prev => ({
+        ...prev,
+        [fieldName]: file
+      }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleContentChange = (content) => {
-    setEditedPost({ ...editedPost, content });
+    setEditedPost(prev => ({ ...prev, content }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    try {
-      const token = await getIdToken();
-      if (!token) {
-        throw new Error('Not authenticated');
-      }
+  const extractYoutubeVideoId = (url) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
 
-      const formData = new FormData();
-      formData.append('title', editedPost.title.trim());
-      formData.append('content', editedPost.content.trim());
-      formData.append('CategoryId', editedPost.CategoryId);
-      formData.append('customUrl', editedPost.customUrl);
-      formData.append('publishDate', editedPost.publishDate);
-      formData.append('youtubeUrl', editedPost.youtubeUrl || '');
-      formData.append('metaDescription', editedPost.metaDescription || '');
-      formData.append('socialTitle', editedPost.socialTitle || '');
-      formData.append('socialDescription', editedPost.socialDescription || '');
-
-      if (editedPost.bannerImage instanceof File) {
-        formData.append('bannerImage', editedPost.bannerImage);
-      }
-
-      if (editedPost.socialImage instanceof File) {
-        formData.append('socialImage', editedPost.socialImage);
-      }
-
-      const response = await fetch(`${REACT_APP_API_URL}/posts/${post.id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update post');
-      }
-
-      const updatedPost = await response.json();
-      setPost(updatedPost);
-      setEditMode(false);
-
-      // Redirect to new URL if custom URL was changed
-      if (updatedPost.customUrl && updatedPost.customUrl !== post.customUrl) {
-        navigate(`/post/${updatedPost.customUrl}`, { replace: true });
-      }
-    } catch (error) {
-      console.error('Error updating post:', error);
-      setError(`Failed to update post: ${error.message}`);
+  const handleYoutubeUrlChange = (e) => {
+    const url = e.target.value;
+    setEditedPost(prev => ({ ...prev, youtubeUrl: url }));
+    
+    const videoId = extractYoutubeVideoId(url);
+    if (videoId) {
+      setYoutubeEmbedUrl(`https://www.youtube.com/embed/${videoId}`);
+      setError('');
+    } else if (url && !videoId) {
+      setYoutubeEmbedUrl('');
+      setError('Please enter a valid YouTube URL');
+    } else {
+      setYoutubeEmbedUrl('');
+      setError('');
     }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
   const handleShareClick = () => {
@@ -286,19 +300,45 @@ const BlogPost = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = await getIdToken();
+      const formData = new FormData();
+      
+      Object.keys(editedPost).forEach(key => {
+        if (key === 'bannerImage' || key === 'socialImage') {
+          if (editedPost[key] instanceof File) {
+            formData.append(key, editedPost[key]);
+          }
+        } else if (editedPost[key] != null) {
+          formData.append(key, editedPost[key]);
+        }
+      });
 
-  const extractVideoId = (url) => {
-    if (!url) return null;
-    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-    const match = url.match(regex);
-    return match ? match[1] : null;
+      const response = await axios.put(
+        `${REACT_APP_API_URL}/posts/${post.id}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const updatedPost = response.data;
+      setPost(updatedPost);
+      setEditMode(false);
+
+      // Redirect if custom URL changed
+      if (updatedPost.customUrl && updatedPost.customUrl !== post.customUrl) {
+        navigate(`/post/${updatedPost.customUrl}`, { replace: true });
+      }
+    } catch (error) {
+      console.error('Error updating post:', error);
+      setError(error.response?.data?.error || 'Failed to update post');
+    }
   };
 
   const sanitizeContent = (content) => {
@@ -311,83 +351,25 @@ const BlogPost = () => {
     };
   };
 
-  // Strip HTML and get excerpt for meta description
-  const getExcerpt = (content, length = 160) => {
-    const strippedContent = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-    return strippedContent.length > length 
-      ? strippedContent.substring(0, length - 3) + '...'
-      : strippedContent;
-  };
-
   if (loading) return <div className="loading">Loading...</div>;
   if (error) return <div className="error">Error: {error}</div>;
   if (!post) return <div className="no-post">Post not found.</div>;
 
-  const videoId = extractVideoId(post.youtubeUrl);
+  const videoId = extractYoutubeVideoId(post.youtubeUrl);
   const currentUrl = `${SITE_URL}/post/${post.customUrl || post.id}`;
-  const imageUrl = post.socialImage 
-    ? `${SITE_URL}/${post.socialImage}`
-    : post.bannerImage 
-      ? `${SITE_URL}/${post.bannerImage}`
-      : `${SITE_URL}/default-social-image.jpg`;
-
+  
   return (
     <>
       <Helmet>
-        {/* Basic Meta Tags */}
         <title>{post.socialTitle || post.title}</title>
-        <meta name="description" content={post.metaDescription || getExcerpt(post.content)} />
-        <link rel="canonical" href={currentUrl} />
-
-        {/* Open Graph / Facebook */}
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content={currentUrl} />
+        <meta name="description" content={post.metaDescription} />
         <meta property="og:title" content={post.socialTitle || post.title} />
-        <meta property="og:description" content={post.socialDescription || post.metaDescription || getExcerpt(post.content)} />
-        <meta property="og:image" content={imageUrl} />
-        <meta property="article:published_time" content={post.publishDate} />
-        {post.Category && <meta property="article:section" content={post.Category.name} />}
-
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={post.socialTitle || post.title} />
-        <meta name="twitter:description" content={post.socialDescription || post.metaDescription || getExcerpt(post.content)} />
-        <meta name="twitter:image" content={imageUrl} />
-
-        {/* LinkedIn */}
-        <meta name="linkedin:card" content="summary_large_image" />
-        <meta name="linkedin:title" content={post.socialTitle || post.title} />
-        <meta name="linkedin:description" content={post.socialDescription || post.metaDescription || getExcerpt(post.content)} />
-        <meta name="linkedin:image" content={imageUrl} />
-
-        {/* Article Schema */}
-        <script type="application/ld+json">
-          {JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BlogPosting",
-            "headline": post.title,
-            "description": post.metaDescription || getExcerpt(post.content),
-            "image": imageUrl,
-            "datePublished": post.publishDate,
-            "dateModified": post.updatedAt,
-            "author": {
-              "@type": "Person",
-              "name": "Joy Infant"
-            },
-            "publisher": {
-              "@type": "Organization",
-              "name": "Joy's Blog",
-              "logo": {
-                "@type": "ImageObject",
-                "url": `${SITE_URL}/logo.png`
-              }
-            },
-            "mainEntityOfPage": {
-              "@type": "WebPage",
-              "@id": currentUrl
-            }
-          })}
-        </script>
+        <meta property="og:description" content={post.socialDescription || post.metaDescription} />
+        <meta property="og:url" content={currentUrl} />
+        {post.socialImage && (
+          <meta property="og:image" content={`${SITE_URL}/${post.socialImage}`} />
+        )}
+        <link rel="canonical" href={currentUrl} />
       </Helmet>
 
       <div className="blog-post">
@@ -417,14 +399,6 @@ const BlogPost = () => {
             />
 
             <input
-              type="file"
-              name="socialImage"
-              onChange={handleChange}
-              accept="image/*"
-              className="edit-social-image"
-            />
-
-            <input
               type="text"
               name="customUrl"
               value={editedPost.customUrl}
@@ -446,38 +420,12 @@ const BlogPost = () => {
               type="text"
               name="youtubeUrl"
               value={editedPost.youtubeUrl}
-              onChange={handleChange}
+              onChange={handleYoutubeUrlChange}
               placeholder="YouTube Video URL (optional)"
               className="edit-youtube-url"
             />
 
-            <textarea
-              name="metaDescription"
-              value={editedPost.metaDescription}
-              onChange={handleChange}
-              placeholder="Meta description for SEO (max 160 characters)"
-              maxLength={160}
-              className="edit-meta-description"
-            />
-
-            <input
-              type="text"
-              name="socialTitle"
-              value={editedPost.socialTitle}
-              onChange={handleChange}
-              placeholder="Social media title (optional)"
-              className="edit-social-title"
-            />
-
-            <textarea
-              name="socialDescription"
-              value={editedPost.socialDescription}
-              onChange={handleChange}
-              placeholder="Social media description (optional)"
-              className="edit-social-description"
-            />
-
-            <select
+<select
               name="CategoryId"
               value={editedPost.CategoryId}
               onChange={handleChange}
@@ -486,11 +434,13 @@ const BlogPost = () => {
             >
               <option value="">Select a category</option>
               {categories.map(category => (
-                <option key={category.id} value={category.id}>{category.name}</option>
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
               ))}
             </select>
 
-            <ReactQuill
+            <ReactQuill 
               theme="snow"
               value={editedPost.content}
               onChange={handleContentChange}
@@ -561,7 +511,9 @@ const BlogPost = () => {
                 {isVideoExpanded && (
                   <div className="video-container">
                     <iframe
-                      src={`https://www.youtube.com/embed/${videoId}`}
+                      width="560"
+                      height="315"
+                      src={youtubeEmbedUrl}
                       title="YouTube video"
                       frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
