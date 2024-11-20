@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Menu, X, Sun, Moon } from 'lucide-react';
+import { Menu, X, Sun, Moon, LayoutDashboard, FileText, Settings, LogOut } from 'lucide-react';
+import './Navigation.css';
 
-function Navigation({ resetFilters, isDarkMode, toggleDarkMode }) {
+function Navigation({ isDarkMode, toggleDarkMode }) {
   const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -11,116 +12,72 @@ function Navigation({ resetFilters, isDarkMode, toggleDarkMode }) {
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/');
+      navigate('/login');
     } catch (error) {
       console.error("Logout error:", error);
     }
   };
 
-  const handleHomeClick = (e) => {
-    e.preventDefault();
-    resetFilters();
-    navigate('/');
-  };
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  const toggleSwitchStyle = {
-    position: 'relative',
-    display: 'inline-block',
-    width: '40px',
-    height: '24px',
-    marginLeft: '10px',
-  };
-
-  const toggleInputStyle = {
-    opacity: 0,
-    width: 0,
-    height: 0,
-  };
-
-  const toggleSliderStyle = {
-    position: 'absolute',
-    cursor: 'pointer',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: isDarkMode ? '#2196F3' : '#ccc',
-    transition: '0.4s',
-    borderRadius: '24px',
-  };
-
-  const toggleSliderBeforeStyle = {
-    position: 'absolute',
-    content: '""',
-    height: '18px',
-    width: '18px',
-    left: isDarkMode ? '3px' : '19px',
-    bottom: '3px',
-    backgroundColor: 'white',
-    transition: '0.4s',
-    borderRadius: '50%',
-  };
-
   const NavLinks = () => (
     <>
-      <li><a href="/" onClick={handleHomeClick}>Home</a></li>
-      <li><Link to="/about" onClick={toggleMenu}>About</Link></li>
-      <li><Link to="/connect" onClick={toggleMenu}>Connect with Me</Link></li>
-      {user && (
-        <>
-          <li><Link to="/create" onClick={toggleMenu}>Create Post</Link></li>
-          {user.isAdmin && (
-            <li><Link to="/categories" onClick={toggleMenu}>Manage Categories</Link></li>
-          )}
-          <li><button onClick={handleLogout}>Logout</button></li>
-        </>
+      <li>
+        <Link to="/dashboard" className="nav-link">
+          <LayoutDashboard size={18} />
+          <span>Dashboard</span>
+        </Link>
+      </li>
+      <li>
+        <Link to="/create" className="nav-link">
+          <FileText size={18} />
+          <span>Create Post</span>
+        </Link>
+      </li>
+      {user?.isAdmin && (
+        <li>
+          <Link to="/categories" className="nav-link">
+            <Settings size={18} />
+            <span>Categories</span>
+          </Link>
+        </li>
       )}
-      <li style={{ display: 'flex', alignItems: 'center' }}>
-        {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
-        <label style={toggleSwitchStyle}>
-          <input 
-            type="checkbox" 
-            checked={isDarkMode} 
-            onChange={toggleDarkMode} 
-            style={toggleInputStyle}
-          />
-          <span style={toggleSliderStyle}>
-            <span style={toggleSliderBeforeStyle}></span>
-          </span>
-        </label>
+      <li>
+        <button onClick={handleLogout} className="nav-link logout">
+          <LogOut size={18} />
+          <span>Logout</span>
+        </button>
+      </li>
+      <li>
+        <button onClick={toggleDarkMode} className="theme-toggle">
+          {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
+        </button>
       </li>
     </>
   );
 
   return (
-    <nav className="navbar">
-      <div className="navbar-container">
-        <div className="name-card">
-          <div className="name-card-image-container">
-            <img 
-              src="https://i.ibb.co/MM2FrPL/Joy.png" 
-              alt="Joy Infant" 
-              className="name-card-image"
-            />
-          </div>
-          <h1 className="name-card-name">Joy Infant</h1>
+    <nav className="admin-nav">
+      <div className="nav-container">
+        <div className="nav-brand">
+          <img 
+            src="https://i.ibb.co/MM2FrPL/Joy.png" 
+            alt="Joy Infant" 
+            className="brand-image"
+          />
+          <span className="brand-name">Admin Dashboard</span>
         </div>
-        <button className="burger-menu" onClick={toggleMenu}>
+
+        <button className="mobile-menu-button" onClick={() => setIsMenuOpen(!isMenuOpen)}>
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
-        <ul className="navbar-links">
+
+        <ul className="nav-links desktop-menu">
           <NavLinks />
         </ul>
       </div>
-      <div className={`side-menu ${isMenuOpen ? 'active' : ''}`}>
-        <button className="close-menu" onClick={toggleMenu}>
-          <X size={24} />
-        </button>
-        <ul className="side-menu-links">
+
+      {/* Mobile Menu */}
+      <div className={`mobile-menu ${isMenuOpen ? 'active' : ''}`}>
+        <ul className="nav-links">
           <NavLinks />
         </ul>
       </div>

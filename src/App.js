@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { HelmetProvider } from 'react-helmet-async';
@@ -6,65 +6,52 @@ import Navigation from './components/Navigation';
 import BlogList from './components/BlogList';
 import BlogPost from './components/BlogPost';
 import CreatePost from './components/CreatePost';
-import SearchResults from './components/SearchResults';
-import Login from './components/Login';
 import CategoryManagement from './components/CategoryManagement';
 import ProtectedRoute from './components/ProtectedRoute';
-import About from './components/About';
-import ConnectWithMe from './components/ConnectWithMe';
-import DefaultSEO from './components/DefaultSEO';
+import Login from './components/Login';
 import './App.css';
 
 function AppContent() {
-  const { user } = useAuth();
-  const [filters, setFilters] = useState({
-    category: '',
-    sortOrder: 'desc',
-    searchQuery: ''
-  });
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const savedMode = localStorage.getItem('darkMode');
-    return savedMode ? JSON.parse(savedMode) : false;
-  });
+  const { user, loading } = useAuth();
 
-  const resetFilters = () => {
-    setFilters({
-      category: '',
-      sortOrder: 'desc',
-      searchQuery: ''
-    });
-  };
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner"></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
-  const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    localStorage.setItem('darkMode', JSON.stringify(newMode));
-    document.body.classList.toggle('dark-mode', newMode);
-  };
-
-  React.useEffect(() => {
-    document.body.classList.toggle('dark-mode', isDarkMode);
-  }, [isDarkMode]);
-  
   return (
-    <div className={`App ${isDarkMode ? 'dark-mode' : ''}`}>
-      <DefaultSEO />
-      <header className="header">
-        <Navigation resetFilters={resetFilters} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
-      </header>
+    <div className="App">
+      {user && <Navigation />}
       <div className="content-wrapper">
         <main className="main-content">
           <Routes>
-            {/* Static Routes */}
+            {/* Public Authentication Route */}
             <Route 
-              path="/admin-login" 
-              element={user ? <Navigate to="/" replace /> : <Login />} 
+              path="/login" 
+              element={
+                user ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <Login />
+                )
+              } 
             />
-            <Route path="/about" element={<About />} />
-            <Route path="/connect" element={<ConnectWithMe />} />
-            <Route path="/search" element={<SearchResults />} />
-            
-            {/* Protected Routes */}
+
+            {/* Protected Admin Routes */}
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <BlogList />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Create New Post */}
             <Route 
               path="/create" 
               element={
@@ -73,6 +60,46 @@ function AppContent() {
                 </ProtectedRoute>
               } 
             />
+
+            {/* View Post Routes */}
+            <Route 
+              path="/post/:slug" 
+              element={
+                <ProtectedRoute>
+                  <BlogPost />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/post/id/:id" 
+              element={
+                <ProtectedRoute>
+                  <BlogPost />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Edit Post Routes */}
+            <Route 
+              path="/edit/:slug" 
+              element={
+                <ProtectedRoute>
+                  <BlogPost editMode={true} />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/edit/id/:id" 
+              element={
+                <ProtectedRoute>
+                  <BlogPost editMode={true} />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Category Management */}
             <Route 
               path="/categories" 
               element={
@@ -82,22 +109,24 @@ function AppContent() {
               } 
             />
 
-            {/* Blog Post Routes - Order matters here */}
-            <Route path="/post/id/:id" element={<BlogPost />} /> {/* Legacy ID-based URLs */}
-            <Route path="/post/:slug" element={<BlogPost />} /> {/* Custom URL with prefix */}
-            
-            {/* Home Route */}
-            <Route path="/" element={<BlogList filters={filters} setFilters={setFilters} />} />
-            
-            {/* Direct Custom URL Route - Must be after specific routes */}
-            <Route path="/:slug" element={<BlogPost />} />
+            {/* Root Route */}
+            <Route 
+              path="/" 
+              element={
+                user ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              } 
+            />
 
-            {/* Catch-all route - must be last */}
+            {/* Catch-all route */}
             <Route 
               path="*" 
               element={
                 <Navigate 
-                  to="/" 
+                  to={user ? "/dashboard" : "/login"} 
                   replace 
                   state={{ error: 'Page not found' }}
                 />
@@ -106,15 +135,6 @@ function AppContent() {
           </Routes>
         </main>
       </div>
-      <footer className="footer" style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        padding: '10px 20px',
-        textAlign: 'center'
-      }}>
-        <p>© 2024 Joy Infant. All rights reserved. 🌟</p>
-      </footer>
     </div>
   );
 }
