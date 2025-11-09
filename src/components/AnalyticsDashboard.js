@@ -75,12 +75,6 @@ const AnalyticsDashboard = () => {
     );
   }
 
-  // Helper to check if we have real data
-  const hasData = analytics && (
-    (analytics.totalViews && analytics.totalViews > 0) ||
-    (analytics.viewsOverTime && analytics.viewsOverTime.length > 0)
-  );
-
   return (
     <div className="analytics-dashboard">
       <div className="analytics-header">
