@@ -173,7 +173,6 @@ const AudioManager = () => {
       analyser.fftSize = 256;
       analyser.smoothingTimeConstant = 0.8;
       source.connect(analyser);
-      setAnalyserNode(analyser);
 
       const audioChunks = [];
       const startTime = Date.now();
@@ -211,7 +210,6 @@ const AudioManager = () => {
           setRecordedAudio(audioBlob);
           saveRecordedAudioToStorage(audioBlob, finalDuration);
           setAudioLevel(0);
-          setAnalyserNode(null);
         },
         durationInterval,
         levelInterval
