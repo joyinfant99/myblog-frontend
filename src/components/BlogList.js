@@ -82,8 +82,7 @@ const BlogList = () => {
         } finally {
             setLoading(false);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [REACT_APP_API_URL]);
+    }, [REACT_APP_API_URL, getIdToken]);
 
     const handleRefresh = async () => {
         setRefreshing(true);
@@ -193,8 +192,7 @@ const BlogList = () => {
 
     useEffect(() => {
         fetchPosts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [fetchPosts]);
 
     useEffect(() => {
         const sortedAndFilteredPosts = getSortedAndFilteredPosts();

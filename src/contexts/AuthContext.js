@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { auth } from '../firebase'; // Adjust the path as needed
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 
@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await signOut(auth);
       setUser(null);
@@ -38,14 +38,14 @@ export function AuthProvider({ children }) {
       console.error("Logout error:", error);
       throw error;
     }
-  };
+  }, []);
 
-  const getIdToken = async () => {
+  const getIdToken = useCallback(async () => {
     if (auth.currentUser) {
       return await auth.currentUser.getIdToken(true);
     }
     return null;
-  };
+  }, []);
 
   const value = {
     user,
