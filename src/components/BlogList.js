@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import './BlogList.css';
 
+// Posts per page for pagination
 const POSTS_PER_PAGE = 7;
 
 const BlogList = () => {
