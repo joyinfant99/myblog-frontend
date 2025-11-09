@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Menu, X, Sun, Moon, LayoutDashboard, FileText, Settings, LogOut, Volume2, BarChart3 } from 'lucide-react';
+import { Menu, X, Sun, Moon, LayoutDashboard, FileText, Settings, LogOut, BarChart3 } from 'lucide-react';
 import './Navigation.css';
 
 function Navigation({ isDarkMode, toggleDarkMode }) {
@@ -36,12 +36,6 @@ function Navigation({ isDarkMode, toggleDarkMode }) {
         <Link to="/analytics" className="nav-link">
           <BarChart3 size={18} />
           <span>Analytics</span>
-        </Link>
-      </li>
-      <li>
-        <Link to="/audio-manager" className="nav-link">
-          <Volume2 size={18} />
-          <span>Audio Manager</span>
         </Link>
       </li>
       {user?.isAdmin && (

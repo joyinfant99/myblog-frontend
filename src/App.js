@@ -7,7 +7,6 @@ import BlogList from './components/BlogList';
 import BlogPost from './components/BlogPost';
 import CreatePost from './components/CreatePost';
 import CategoryManagement from './components/CategoryManagement';
-import AudioManager from './components/AudioManager';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login';
@@ -107,16 +106,6 @@ function AppContent() {
               element={
                 <ProtectedRoute adminOnly={true}>
                   <CategoryManagement />
-                </ProtectedRoute>
-              } 
-            />
-
-            {/* Audio Manager */}
-            <Route 
-              path="/audio-manager" 
-              element={
-                <ProtectedRoute>
-                  <AudioManager />
                 </ProtectedRoute>
               } 
             />
