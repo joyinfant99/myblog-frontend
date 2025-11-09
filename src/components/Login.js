@@ -12,7 +12,6 @@ function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
 
   const handleEmailLogin = async (e) => {
     e.preventDefault();
@@ -23,7 +22,7 @@ function Login() {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log("User signed in:", userCredential.user);
       
-      const token = await userCredential.user.getIdToken(true);
+      await userCredential.user.getIdToken(true);
       const claims = await userCredential.user.getIdTokenResult();
       
       if (!claims.claims.admin) {

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import ReactQuill from 'react-quill';
+import VoiceAudioGenerator from './VoiceAudioGenerator';
 import { 
   Edit, 
   Trash2, 
@@ -36,6 +37,7 @@ function CreatePost() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isCategorySubmitting, setIsCategorySubmitting] = useState(false);
+  const [createdPostId, setCreatedPostId] = useState(null);
 
   // SEO and Social Media Fields
   const [metaDescription, setMetaDescription] = useState('');
@@ -49,6 +51,23 @@ function CreatePost() {
   const { user } = useAuth();
 
   const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'https://myblog-cold-night-118.fly.dev';
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      console.log('Fetching categories from:', REACT_APP_API_URL);
+      const response = await axios.get(`${REACT_APP_API_URL}/categories`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true
+      });
+      console.log('Categories response:', response.data);
+      setCategories(response.data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      throw new Error('Failed to fetch categories. Please try again.');
+    }
+  }, [REACT_APP_API_URL]);
 
   useEffect(() => {
     const setupInitialData = async () => {
@@ -66,14 +85,14 @@ function CreatePost() {
     };
 
     setupInitialData();
-  }, []);
+  }, [fetchCategories]);
 
   // Update social title when main title changes
   useEffect(() => {
     if (title && !socialTitle) {
       setSocialTitle(title);
     }
-  }, [title]);
+  }, [title, socialTitle]);
 
   // Update meta description when content changes
   useEffect(() => {
@@ -82,7 +101,7 @@ function CreatePost() {
       const desc = strippedContent.substring(0, 160);
       setMetaDescription(desc);
     }
-  }, [content]);
+  }, [content, metaDescription]);
 
   // Update custom URL when title changes
   useEffect(() => {
@@ -91,23 +110,6 @@ function CreatePost() {
       setCustomUrl(formattedUrl);
     }
   }, [title]);
-
-  const fetchCategories = async () => {
-    try {
-      console.log('Fetching categories from:', REACT_APP_API_URL);
-      const response = await axios.get(`${REACT_APP_API_URL}/categories`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        withCredentials: true
-      });
-      console.log('Categories response:', response.data);
-      setCategories(response.data);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      throw new Error('Failed to fetch categories. Please try again.');
-    }
-  };
 
   const handleBannerImageChange = (e) => {
     const file = e.target.files[0];
@@ -399,10 +401,8 @@ function CreatePost() {
       });
 
       console.log('Post created:', response.data);
-      setSuccess('Post created successfully!');
-      setTimeout(() => {
-        navigate(`/post/${response.data.customUrl}`);
-      }, 1000);
+      setCreatedPostId(response.data.id);
+      setSuccess('Post created successfully! You can now generate audio for this post.');
     } catch (error) {
       console.error('Error creating post:', error);
       setError(error.response?.data?.error || 'Failed to create post. Please try again.');
@@ -635,6 +635,20 @@ function CreatePost() {
             />
           </div>
         </div>
+
+        {/* Voice Audio Generation Section */}
+        {createdPostId && (
+          <div className="form-section">
+            <h3 className="section-title">Voice Audio</h3>
+            <VoiceAudioGenerator
+              postId={createdPostId}
+              postTitle={title}
+              onAudioGenerated={(audioData) => {
+                console.log('Audio generated:', audioData);
+              }}
+            />
+          </div>
+        )}
 
         <button 
           type="submit" 
