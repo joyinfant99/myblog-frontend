@@ -66,13 +66,20 @@ const AnalyticsDashboard = () => {
   if (!analytics) {
     return (
       <div className="analytics-error">
-        <p>Failed to load analytics data</p>
+        <p>No analytics data available yet</p>
+        <p className="help-text">Data will appear once visitors start reading your blog posts</p>
         <button onClick={fetchAnalytics} className="retry-button">
-          Try Again
+          Refresh
         </button>
       </div>
     );
   }
+
+  // Helper to check if we have real data
+  const hasData = analytics && (
+    (analytics.totalViews && analytics.totalViews > 0) ||
+    (analytics.viewsOverTime && analytics.viewsOverTime.length > 0)
+  );
 
   return (
     <div className="analytics-dashboard">
