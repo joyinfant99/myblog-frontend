@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import './AudioManager.css';
 
@@ -21,7 +21,6 @@ const AudioManager = () => {
   const [selectedInputDevice, setSelectedInputDevice] = useState('');
   const [selectedOutputDevice, setSelectedOutputDevice] = useState('');
   const [audioLevel, setAudioLevel] = useState(0);
-  const [analyserNode, setAnalyserNode] = useState(null);
 
   // Voice recordings state
   const [voiceRecordings, setVoiceRecordings] = useState([]);
@@ -48,6 +47,7 @@ const AudioManager = () => {
     loadRecordedAudioFromStorage();
     enumerateAudioDevices();
     loadVoiceRecordings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadVoiceRecordings = async () => {
