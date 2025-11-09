@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import './BlogList.css';
 
-const POSTS_PER_PAGE = 20;
+const POSTS_PER_PAGE = 7;
 
 const BlogList = () => {
     const { getIdToken } = useAuth();
@@ -53,7 +53,7 @@ const BlogList = () => {
         setError(null);
         try {
             const token = await getIdToken();
-            const response = await axios.get(`${REACT_APP_API_URL}/posts`, {
+            const response = await axios.get(`${REACT_APP_API_URL}/posts?limit=0`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -61,16 +61,16 @@ const BlogList = () => {
             });
 
             if (response.data && Array.isArray(response.data.posts)) {
-                const sortedPosts = response.data.posts.sort((a, b) => 
+                const sortedPosts = response.data.posts.sort((a, b) =>
                     new Date(b.createdAt) - new Date(a.createdAt)
                 );
                 setPosts(sortedPosts);
-                
+
                 const uniqueCategories = [...new Set(sortedPosts
                     .filter(post => post.Category)
                     .map(post => post.Category.name))];
                 setCategories(uniqueCategories);
-                
+
                 setTotalPages(Math.ceil(sortedPosts.length / POSTS_PER_PAGE));
             } else {
                 throw new Error('Invalid response format from server');
@@ -81,7 +81,8 @@ const BlogList = () => {
         } finally {
             setLoading(false);
         }
-    }, [REACT_APP_API_URL, getIdToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [REACT_APP_API_URL]);
 
     const handleRefresh = async () => {
         setRefreshing(true);
@@ -191,7 +192,20 @@ const BlogList = () => {
 
     useEffect(() => {
         fetchPosts();
-    }, [fetchPosts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        const sortedAndFilteredPosts = getSortedAndFilteredPosts();
+        const newTotalPages = Math.ceil(sortedAndFilteredPosts.length / POSTS_PER_PAGE);
+        setTotalPages(newTotalPages);
+
+        // Reset to page 1 if current page exceeds total pages
+        if (currentPage > newTotalPages && newTotalPages > 0) {
+            setCurrentPage(1);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [posts, selectedCategory, searchTerm, sortOrder]);
 
     if (loading && !refreshing) {
         return (
