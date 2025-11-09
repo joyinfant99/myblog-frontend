@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import ReactQuill from 'react-quill';
+import VoiceAudioGenerator from './VoiceAudioGenerator';
 import axios from 'axios';
 import { 
     AlertCircle, 
@@ -56,6 +57,7 @@ const EditPost = () => {
     const [categories, setCategories] = useState([]);
     const [youtubeEmbedUrl, setYoutubeEmbedUrl] = useState('');
     const [isVideoExpanded, setIsVideoExpanded] = useState(false);
+    const [currentPostId, setCurrentPostId] = useState(null);
 
     // Editor Configuration
     const modules = {
@@ -92,6 +94,7 @@ const EditPost = () => {
             });
 
             const post = response.data;
+            setCurrentPostId(postId);
 
             setPostData({
                 title: post.title || '',
@@ -548,6 +551,18 @@ const EditPost = () => {
                             className="date-input"
                         />
                     </div>
+                </div>
+
+                {/* Voice Audio Generation Section */}
+                <div className="form-section">
+                    <h3 className="section-title">Voice Audio</h3>
+                    <VoiceAudioGenerator
+                        postId={currentPostId}
+                        postTitle={postData.title}
+                        onAudioGenerated={(audioData) => {
+                            console.log('Audio generated:', audioData);
+                        }}
+                    />
                 </div>
 
                 <button 

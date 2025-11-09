@@ -65,6 +65,8 @@ const BlogList = () => {
                 const sortedPosts = response.data.posts.sort((a, b) =>
                     new Date(b.createdAt) - new Date(a.createdAt)
                 );
+                console.log('Total posts fetched:', sortedPosts.length);
+                console.log('Posts data:', sortedPosts);
                 setPosts(sortedPosts);
 
                 const uniqueCategories = [...new Set(sortedPosts
@@ -73,6 +75,7 @@ const BlogList = () => {
                 setCategories(uniqueCategories);
 
                 setTotalPages(Math.ceil(sortedPosts.length / POSTS_PER_PAGE));
+                console.log('Total pages:', Math.ceil(sortedPosts.length / POSTS_PER_PAGE));
             } else {
                 throw new Error('Invalid response format from server');
             }
