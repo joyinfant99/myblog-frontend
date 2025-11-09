@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../firebase';
 import { AlertCircle } from 'lucide-react';
-import './Login.css';  // Make sure this import is present
+import './Login.css';
 
 function Login() {
   const [email, setEmail] = useState('');

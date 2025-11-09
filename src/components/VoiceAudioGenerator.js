@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { 
   Volume2, 
@@ -25,13 +25,6 @@ const VoiceAudioGenerator = ({ postId, postTitle, onAudioGenerated }) => {
   const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
   const TTS_SERVICE_URL = 'http://127.0.0.1:8001';
 
-  useEffect(() => {
-    checkTrainedVoice();
-    if (postId) {
-      checkAudioStatus();
-    }
-  }, [postId]);
-
   const checkTrainedVoice = async () => {
     try {
       setCheckingVoice(true);
@@ -46,7 +39,7 @@ const VoiceAudioGenerator = ({ postId, postTitle, onAudioGenerated }) => {
     }
   };
 
-  const checkAudioStatus = async () => {
+  const checkAudioStatus = useCallback(async () => {
     if (!postId) return;
     
     try {
@@ -61,7 +54,14 @@ const VoiceAudioGenerator = ({ postId, postTitle, onAudioGenerated }) => {
       console.error('Error checking audio status:', err);
       setAudioStatus('not_generated');
     }
-  };
+  }, [postId, REACT_APP_API_URL]);
+
+  useEffect(() => {
+    checkTrainedVoice();
+    if (postId) {
+      checkAudioStatus();
+    }
+  }, [postId, checkAudioStatus]);
 
   const generateAudio = async () => {
     if (!postId) {
