@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: react-app
+    buildCommand: npm run build
+    staticPublishPath: ./build
+    headers:
+      /**:
+        - key: Cache-Control
+          value: public, max-age=0, must-revalidate
