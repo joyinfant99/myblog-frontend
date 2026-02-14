@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -13,11 +13,7 @@ function CategoryManagement() {
 
   console.log("CategoryManagement rendered, user:", user); // Debug log
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response = await axios.get(`${REACT_APP_API_URL}/categories`);
       setCategories(response.data);
@@ -25,7 +21,11 @@ function CategoryManagement() {
       setError('Failed to fetch categories');
       console.error('Error fetching categories:', error);
     }
-  };
+  }, [REACT_APP_API_URL]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
