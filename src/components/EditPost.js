@@ -28,7 +28,7 @@ const EditPost = () => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'https://myblog-cold-night-118.fly.dev';
+    const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'https://blog-api.joyinfant.com';
 
     // Form State
     const [postData, setPostData] = useState({

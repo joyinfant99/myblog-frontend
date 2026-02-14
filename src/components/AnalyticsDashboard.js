@@ -18,7 +18,7 @@ const AnalyticsDashboard = () => {
   const [timeRange, setTimeRange] = useState('7days');
   const [refreshing, setRefreshing] = useState(false);
 
-  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'https://myblog-cold-night-118.fly.dev';
+  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'https://blog-api.joyinfant.com';
 
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 

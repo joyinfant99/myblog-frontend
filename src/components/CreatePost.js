@@ -48,7 +48,7 @@ function CreatePost() {
 
   const { user } = useAuth();
 
-  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'https://myblog-cold-night-118.fly.dev';
+  const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'https://blog-api.joyinfant.com';
 
   const fetchCategories = useCallback(async () => {
     try {

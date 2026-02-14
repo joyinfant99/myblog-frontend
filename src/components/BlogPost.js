@@ -63,7 +63,7 @@ const BlogPost = ({ editMode: initialEditMode = false }) => {
     const [existingBannerImage, setExistingBannerImage] = useState('');
     const [existingSocialImage, setExistingSocialImage] = useState('');
 
-    const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'https://myblog-cold-night-118.fly.dev';
+    const REACT_APP_API_URL = process.env.REACT_APP_API_URL || 'https://blog-api.joyinfant.com';
     const SITE_URL = process.env.REACT_APP_SITE_URL || window.location.origin.replace(/\/$/, '');
 
     const modules = {
