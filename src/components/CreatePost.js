@@ -2,12 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import ReactQuill from 'react-quill';
-import VoiceAudioGenerator from './VoiceAudioGenerator';
-import { 
-  Edit, 
-  Trash2, 
-  Check, 
-  X as Close, 
+import {
+  Edit,
+  Trash2,
+  Check,
+  X as Close,
   AlertCircle,
   Save,
   Loader
@@ -36,7 +35,6 @@ function CreatePost() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isCategorySubmitting, setIsCategorySubmitting] = useState(false);
-  const [createdPostId, setCreatedPostId] = useState(null);
 
   // SEO and Social Media Fields
   const [metaDescription, setMetaDescription] = useState('');
@@ -399,8 +397,12 @@ function CreatePost() {
       });
 
       console.log('Post created:', response.data);
-      setCreatedPostId(response.data.id);
-      setSuccess('Post created successfully! You can now generate audio for this post.');
+      setSuccess('Post created successfully!');
+
+      // Reset form after successful creation
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
       console.error('Error creating post:', error);
       setError(error.response?.data?.error || 'Failed to create post. Please try again.');
@@ -634,23 +636,9 @@ function CreatePost() {
           </div>
         </div>
 
-        {/* Voice Audio Generation Section */}
-        {createdPostId && (
-          <div className="form-section">
-            <h3 className="section-title">Voice Audio</h3>
-            <VoiceAudioGenerator
-              postId={createdPostId}
-              postTitle={title}
-              onAudioGenerated={(audioData) => {
-                console.log('Audio generated:', audioData);
-              }}
-            />
-          </div>
-        )}
-
-        <button 
-          type="submit" 
-          className="submit-button" 
+        <button
+          type="submit"
+          className="submit-button"
           disabled={isSubmitting}
         >
           {isSubmitting ? (
